@@ -17,8 +17,17 @@ import {
 const SUPPORTED_TYPES = [
   'video/mp4',
   'video/avi',
+  'video/x-msvideo',
   'video/quicktime',
-  'video/x-matroska'
+  'video/x-matroska',
+  ''
+];
+
+const SUPPORTED_EXTENSIONS = [
+  '.mp4',
+  '.avi',
+  '.mov',
+  '.mkv'
 ];
 
 const MAX_PROGRESS = 94;
@@ -237,8 +246,15 @@ export default function UploadPanel() {
     event: ChangeEvent<HTMLInputElement>
   ) {
     const file = event.target.files?.[0] ?? null;
+    const extension = file?.name
+      .slice(file.name.lastIndexOf('.'))
+      .toLowerCase();
 
-    if (file && !SUPPORTED_TYPES.includes(file.type)) {
+    if (
+      file &&
+      !SUPPORTED_TYPES.includes(file.type) &&
+      !SUPPORTED_EXTENSIONS.includes(extension ?? '')
+    ) {
       setError(
         'Unsupported video type. Use MP4, AVI, MOV, or MKV.'
       );
