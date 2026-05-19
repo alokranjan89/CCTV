@@ -1,409 +1,161 @@
 import { motion } from 'framer-motion';
 import {
   AlertTriangle,
-  Cpu,
+  Camera,
+  Gauge,
   MapPin,
+  Play,
+  RadioTower,
   ShieldCheck,
-  Tv,
-  LucideIcon
+  Timer
 } from 'lucide-react';
 
-/* =========================
-   Data
-========================= */
-
-type Stat = {
-  label: string;
-  value: string;
-  tone: string;
-};
-
-type Insight = {
-  label: string;
-  value: string;
-  icon: LucideIcon;
-};
-
-const stats: Stat[] = [
-  {
-    label: 'Motion detection',
-    value: 'Active',
-    tone: 'text-emerald-300'
-  },
-  {
-    label: 'Suspicious zones',
-    value: '4',
-    tone: 'text-orange-300'
-  },
-  {
-    label: 'AI confidence',
-    value: '98.6%',
-    tone: 'text-sky-300'
-  }
+const cameraFeeds = [
+  { name: 'North gate', status: 'Tracking', tone: 'text-cyan-200' },
+  { name: 'Parking lane', status: 'Motion', tone: 'text-amber-200' },
+  { name: 'Store room', status: 'Clear', tone: 'text-emerald-200' }
 ];
 
-const insights: Insight[] = [
-  {
-    label: 'Followed target',
-    value: '22m',
-    icon: MapPin
-  },
-  {
-    label: 'Threat cluster',
-    value: '3',
-    icon: AlertTriangle
-  },
-  {
-    label: 'Frame parse',
-    value: '12K',
-    icon: Cpu
-  }
+const eventMetrics = [
+  { label: 'Objects grouped', value: '128', icon: Gauge },
+  { label: 'Timeline saved', value: '94%', icon: Timer },
+  { label: 'Review queue', value: '06', icon: AlertTriangle }
 ];
 
-/* =========================
-   Animations
-========================= */
-
-const fadeUp = {
-  hidden: {
-    opacity: 0,
-    y: 24
-  },
-  visible: {
-    opacity: 1,
-    y: 0
-  }
-};
-
-const stagger = {
-  visible: {
-    transition: {
-      staggerChildren: 0.08
-    }
-  }
-};
-
-/* =========================
-   Reusable Components
-========================= */
-
-function SectionBadge({ text }: { text: string }) {
+function FeedCard({ name, status, tone }: { name: string; status: string; tone: string }) {
   return (
-    <div
-      className="
-        inline-flex items-center gap-2 rounded-full
-        border border-white/10 bg-slate-900/70
-        px-4 py-2 text-xs uppercase
-        tracking-[0.22em] text-slate-300
-      "
-    >
-      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-      {text}
+    <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Camera className="h-4 w-4 text-slate-400" />
+          <span className="text-sm font-medium text-white">{name}</span>
+        </div>
+        <span className={`text-xs uppercase ${tone}`}>{status}</span>
+      </div>
     </div>
   );
 }
 
-function StatCard({ stat }: { stat: Stat }) {
-  return (
-    <motion.article
-      variants={fadeUp}
-      className="
-        rounded-3xl border border-white/5
-        bg-slate-950/70 p-4
-      "
-    >
-      <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
-        {stat.label}
-      </p>
-
-      <h3 className={`mt-3 text-2xl font-semibold ${stat.tone}`}>
-        {stat.value}
-      </h3>
-    </motion.article>
-  );
-}
-
-function InsightCard({ item }: { item: Insight }) {
-  const Icon = item.icon;
-
-  return (
-    <motion.article
-      variants={fadeUp}
-      className="
-        flex items-start gap-4 rounded-3xl
-        border border-white/5 bg-slate-900/70 p-4
-      "
-    >
-      <div
-        className="
-          grid h-12 w-12 place-items-center rounded-2xl
-          bg-slate-800/80 text-cyan-300
-        "
-      >
-        <Icon className="h-5 w-5" />
-      </div>
-
-      <div>
-        <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">
-          {item.label}
-        </p>
-
-        <h4 className="mt-2 text-lg font-semibold text-white">
-          {item.value}
-        </h4>
-      </div>
-    </motion.article>
-  );
-}
-
-function OperatorFeed() {
-  return (
-    <motion.div
-      variants={fadeUp}
-      className="
-        relative overflow-hidden rounded-[28px]
-        border border-white/10 bg-slate-900/75 p-5
-      "
-    >
-      {/* Top Accent */}
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-orange-500/60 via-transparent to-sky-400/40" />
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.24em] text-slate-400">
-            Operator feed
-          </p>
-
-          <h3 className="mt-2 text-xl font-semibold text-white">
-            Zone 7
-          </h3>
-        </div>
-
-        <SectionBadge text="Live" />
-      </div>
-
-      {/* Feed */}
-      <div
-        className="
-          relative mt-5 h-[260px] overflow-hidden
-          rounded-[24px] border border-white/10
-          bg-slate-950
-        "
-      >
-        {/* Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(15,23,42,0.2),rgba(7,12,22,0.95))]" />
-
-        {/* Scan Area */}
-        <div className="absolute inset-10 rounded-3xl border border-orange-400/20" />
-
-        {/* Object */}
-        <motion.div
-          animate={{
-            scale: [1, 1.04, 1]
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity
-          }}
-          className="
-            absolute left-10 top-16 h-24 w-40 rounded-3xl
-            border border-sky-300/20 bg-sky-300/10
-          "
-        />
-
-        {/* Target */}
-        <motion.div
-          animate={{
-            opacity: [0.7, 1, 0.7]
-          }}
-          transition={{
-            duration: 1.6,
-            repeat: Infinity
-          }}
-          className="
-            absolute right-14 top-28 flex h-14 w-24
-            items-center justify-center rounded-2xl
-            border border-emerald-300/20
-            bg-emerald-300/10 text-xs text-emerald-200
-          "
-        >
-          Target
-        </motion.div>
-
-        {/* Scan Line */}
-        <motion.div
-          animate={{
-            y: ['-100%', '300%']
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: 'linear'
-          }}
-          className="
-            absolute inset-x-0 h-16
-            bg-gradient-to-b
-            from-transparent
-            via-white/10
-            to-transparent
-          "
-        />
-      </div>
-    </motion.div>
-  );
-}
-
-function ThreatPanel() {
-  return (
-    <motion.div
-      variants={fadeUp}
-      className="
-        rounded-[32px] border border-white/5
-        bg-slate-950/75 p-6
-      "
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Threat intelligence
-          </p>
-
-          <h3 className="mt-3 text-2xl font-semibold text-white">
-            Active anomaly clusters
-          </h3>
-        </div>
-
-        <div className="rounded-full bg-slate-900/70 px-4 py-2 text-xs uppercase tracking-[0.22em] text-slate-300">
-          6 min ago
-        </div>
-      </div>
-
-      {/* Threat */}
-      <div className="mt-6 rounded-[28px] bg-slate-900/80 p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-slate-400">
-              Highest-risk event
-            </p>
-
-            <h4 className="mt-2 text-lg font-semibold text-white">
-              Perimeter breach detected
-            </h4>
-          </div>
-
-          <div className="rounded-full bg-red-500/15 px-3 py-1 text-sm text-red-300">
-            Threat
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center gap-2 text-sm text-slate-400">
-          <ShieldCheck className="h-4 w-4 text-sky-300" />
-          Confidence 96.2%
-        </div>
-      </div>
-
-      {/* Progress */}
-      <div className="mt-4 rounded-[28px] bg-slate-900/80 p-5">
-        <div className="flex items-center justify-between text-sm text-slate-400">
-          <span>Frame ingestion</span>
-
-          <span className="text-white">
-            12,842 / min
-          </span>
-        </div>
-
-        <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/5">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: '72%' }}
-            transition={{ duration: 1 }}
-            className="h-full rounded-full bg-gradient-to-r from-orange-500 to-sky-400"
-          />
-        </div>
-
-        <div className="mt-3 flex items-center gap-2 text-xs text-slate-500">
-          <span className="h-2 w-2 rounded-full bg-orange-400" />
-          Realtime anomaly scanning
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* =========================
-   Main Component
-========================= */
-
 export default function HeroPanel() {
   return (
-    <motion.section
-      initial="hidden"
-      animate="visible"
-      variants={stagger}
-      className="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]"
-    >
-      {/* Left */}
+    <section className="grid gap-6 xl:grid-cols-[1.35fr_0.75fr]">
       <motion.div
-        variants={fadeUp}
-        className="
-          relative overflow-hidden rounded-[36px]
-          border border-white/5
-          bg-[#060816]/90 p-6 backdrop-blur-xl
-        "
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55 }}
+        className="relative min-h-[520px] overflow-hidden rounded-2xl border border-white/10 bg-[#0a0f19] shadow-2xl shadow-black/30"
       >
-        {/* Glow */}
-        <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-orange-500/10 to-transparent" />
+        <img
+          src="/cctv-cover.png"
+          alt="CCTV recap visual"
+          className="absolute inset-0 h-full w-full object-cover opacity-42"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,8,13,0.98)_0%,rgba(6,8,13,0.82)_38%,rgba(6,8,13,0.38)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.08)_1px,transparent_1px)] bg-[size:38px_38px] opacity-35" />
 
-        <div className="relative z-10">
-          {/* Header */}
-          <div className="flex items-center justify-between gap-4">
+        <motion.div
+          animate={{ y: ['-20%', '120%'] }}
+          transition={{ duration: 5.2, repeat: Infinity, ease: 'linear' }}
+          className="absolute left-0 right-0 top-0 h-24 bg-gradient-to-b from-transparent via-cyan-200/12 to-transparent"
+        />
+
+        <div className="relative z-10 grid min-h-[520px] gap-8 p-5 sm:p-8 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="flex flex-col justify-between gap-8">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                Live surveillance preview
-              </p>
+              <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-300/20 bg-emerald-300/10 px-3 py-2 text-xs uppercase text-emerald-200">
+                <span className="h-2 w-2 rounded-full bg-emerald-300" />
+                System armed
+              </div>
 
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
-                Cinematic AI Command Center
-              </h1>
+              <h3 className="mt-6 text-3xl font-semibold leading-tight text-white sm:text-5xl">
+                Review every incident without watching every minute.
+              </h3>
+
+              <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
+                The engine extracts moving objects, compresses timelines, and renders a single recap clip with timestamps for faster investigation.
+              </p>
             </div>
 
-            <SectionBadge text="Recon active" />
+            <div className="grid gap-3 sm:grid-cols-3">
+              {eventMetrics.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.label} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 backdrop-blur-xl">
+                    <Icon className="h-5 w-5 text-amber-200" />
+                    <p className="mt-4 text-2xl font-semibold text-white">{item.value}</p>
+                    <p className="mt-1 text-xs text-slate-400">{item.label}</p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Stats */}
-          <motion.div
-            variants={stagger}
-            className="mt-6 grid gap-4 md:grid-cols-3"
-          >
-            {stats.map((stat) => (
-              <StatCard key={stat.label} stat={stat} />
-            ))}
-          </motion.div>
+          <div className="flex items-end">
+            <div className="w-full rounded-2xl border border-white/10 bg-[#070b13]/86 p-4 shadow-2xl shadow-black/35 backdrop-blur-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase text-slate-500">Live camera matrix</p>
+                  <h4 className="mt-1 text-xl font-semibold text-white">Sector B overview</h4>
+                </div>
+                <div className="grid h-11 w-11 place-items-center rounded-xl bg-cyan-300 text-slate-950">
+                  <Play className="h-5 w-5 fill-current" />
+                </div>
+              </div>
 
-          {/* Feed + Insights */}
-          <div className="mt-6 grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-            <OperatorFeed />
+              <div className="mt-4 overflow-hidden rounded-xl border border-white/10 bg-black">
+                <img src="/cctv-recap.png" alt="Recap interface preview" className="h-[230px] w-full object-cover opacity-85" />
+              </div>
 
-            <motion.div
-              variants={stagger}
-              className="
-                grid gap-4 rounded-[28px]
-                bg-slate-950/80 p-4
-                border border-white/5
-              "
-            >
-              {insights.map((item) => (
-                <InsightCard key={item.label} item={item} />
-              ))}
-            </motion.div>
+              <div className="mt-4 grid gap-3">
+                {cameraFeeds.map((feed) => (
+                  <FeedCard key={feed.name} {...feed} />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Right */}
-      <ThreatPanel />
-    </motion.section>
+      <motion.aside
+        initial={{ opacity: 0, y: 18 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55, delay: 0.08 }}
+        className="rounded-2xl border border-white/10 bg-[#090d16]/88 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase text-slate-500">Mission brief</p>
+            <h3 className="mt-2 text-2xl font-semibold text-white">Today’s surveillance stack</h3>
+          </div>
+          <RadioTower className="h-6 w-6 text-cyan-200" />
+        </div>
+
+        <div className="mt-6 space-y-3">
+          {[
+            ['Static camera optimized', ShieldCheck, 'Ready'],
+            ['Motion trail extraction', MapPin, 'Enabled'],
+            ['Timestamp overlay', Timer, 'Synced'],
+            ['Suspicious event review', AlertTriangle, 'Queued']
+          ].map(([label, Icon, value]) => {
+            const TypedIcon = Icon as typeof ShieldCheck;
+            return (
+              <div key={label as string} className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.035] p-4">
+                <div className="flex items-center gap-3">
+                  <TypedIcon className="h-5 w-5 text-amber-200" />
+                  <span className="text-sm text-slate-200">{label as string}</span>
+                </div>
+                <span className="text-xs uppercase text-slate-500">{value as string}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-cyan-300/15 bg-cyan-300/8 p-5">
+          <p className="text-sm leading-6 text-slate-300">
+            Best for fixed CCTV angles: entrances, corridors, parking lanes, storefronts, warehouses, and checkpoints.
+          </p>
+        </div>
+      </motion.aside>
+    </section>
   );
 }

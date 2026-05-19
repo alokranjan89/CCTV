@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
+  BadgeCheck,
   CloudUpload,
   FileText,
   PlayCircle,
@@ -344,60 +345,54 @@ export default function UploadPanel() {
     <section
       aria-labelledby="upload-heading"
       className="
-        rounded-[36px] border border-white/5
-        bg-[#060816]/90 p-6
-        backdrop-blur-xl
+        overflow-hidden rounded-2xl border border-white/10
+        bg-[#090d16]/90 p-5
+        shadow-2xl shadow-black/25 backdrop-blur-xl
       "
     >
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Upload experience
+          <p className="text-xs uppercase text-cyan-200">
+            Recap generator
           </p>
 
           <h2
             id="upload-heading"
-            className="mt-3 text-3xl font-semibold tracking-tight text-white"
+            className="mt-2 text-3xl font-semibold text-white"
           >
-            Cinematic ingest flow
+            Upload footage and generate a compressed incident review.
           </h2>
         </div>
 
         <StatusBadge state={uploadState} />
       </div>
 
-      {/* Main Panel */}
       <div
         className="
-          rounded-[32px] border border-white/10
-          bg-slate-950/80 p-6
+          rounded-2xl border border-white/10
+          bg-black/24 p-4
         "
       >
-        {/* Top */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-2xl">
             <div
               className="
-                inline-flex items-center gap-2 rounded-full
-                bg-orange-400/10 px-3 py-1
-                text-xs uppercase tracking-[0.22em]
-                text-orange-200
+                inline-flex items-center gap-2 rounded-xl
+                border border-amber-300/20 bg-amber-300/10 px-3 py-2
+                text-xs uppercase text-amber-100
               "
             >
-              <CloudUpload className="h-4 w-4" />
-              AI scan active
+              <BadgeCheck className="h-4 w-4" />
+              End-to-end upload pipeline
             </div>
 
             <p className="mt-4 text-sm leading-6 text-slate-300">
-              Upload surveillance footage for AI-driven
-              anomaly detection, danger-zone tracking,
-              and cinematic recap generation.
+              Pick a video, tune the summary settings, and let the backend render a playable recap clip with timestamps.
             </p>
           </div>
 
-          <div className="rounded-3xl bg-slate-900/80 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+          <div className="rounded-xl border border-white/10 bg-white/[0.035] p-4">
+            <p className="text-xs uppercase text-slate-500">
               Pipeline status
             </p>
 
@@ -407,65 +402,62 @@ export default function UploadPanel() {
           </div>
         </div>
 
-        {/* Grid */}
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          {/* Upload Area */}
           <label
             className="
-              group flex cursor-pointer flex-col
-              items-center justify-center rounded-[28px]
-              border border-dashed border-white/10
-              bg-slate-950/80 p-8 text-center
-              transition hover:border-orange-400/40
+              group relative flex min-h-[300px] cursor-pointer flex-col
+              items-center justify-center overflow-hidden rounded-2xl
+              border border-dashed border-cyan-200/20
+              bg-[linear-gradient(135deg,rgba(8,145,178,0.14),rgba(15,23,42,0.36))]
+              p-8 text-center transition hover:border-cyan-200/50
             "
           >
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:30px_30px] opacity-40" />
             <input
               type="file"
               hidden
-              accept="video/mp4,video/avi,video/mov,video/mkv"
+              accept="video/mp4,video/avi,video/x-msvideo,video/quicktime,video/x-matroska,.mp4,.avi,.mov,.mkv"
               onChange={handleFileChange}
             />
 
             <motion.div
               whileHover={{ scale: 1.04 }}
               className="
-                mb-5 grid h-16 w-16 place-items-center
-                rounded-3xl bg-slate-900 text-orange-300
+                relative z-10 mb-5 grid h-16 w-16 place-items-center
+                rounded-2xl bg-cyan-200 text-slate-950
+                shadow-xl shadow-cyan-200/20
               "
             >
-              <FileText className="h-7 w-7" />
+              <CloudUpload className="h-7 w-7" />
             </motion.div>
 
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="relative z-10 text-xl font-semibold text-white">
               Select or drop footage
             </h3>
 
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="relative z-10 mt-2 text-sm text-slate-400">
               MP4, AVI, MOV, MKV supported
             </p>
 
             <span
               className="
-                mt-5 rounded-full bg-white/5
-                px-4 py-2 text-xs uppercase
-                tracking-[0.24em] text-slate-300
+                relative z-10 mt-5 rounded-xl border border-white/10
+                bg-white/10 px-4 py-2 text-xs uppercase text-slate-200
               "
             >
               Browse files
             </span>
           </label>
 
-          {/* Controls */}
           <div
             className="
-              rounded-[28px] border border-white/5
-              bg-slate-950/85 p-6
+              rounded-2xl border border-white/10
+              bg-[#070b13]/88 p-5
             "
           >
-            {/* File */}
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                <p className="text-xs uppercase text-slate-500">
                   Footage preview
                 </p>
 
@@ -478,17 +470,16 @@ export default function UploadPanel() {
               <div
                 className="
                   grid h-11 w-11 place-items-center
-                  rounded-2xl bg-slate-900 text-sky-300
+                  rounded-xl bg-white/[0.06] text-cyan-200
                 "
               >
                 <PlayCircle className="h-5 w-5" />
               </div>
             </div>
 
-            {/* Sliders */}
             <div className="mt-8 space-y-6">
               <div>
-                <label className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                <label className="text-xs uppercase text-slate-500">
                   Interval ({interval}s)
                 </label>
 
@@ -505,7 +496,7 @@ export default function UploadPanel() {
               </div>
 
               <div>
-                <label className="text-xs uppercase tracking-[0.24em] text-slate-500">
+                <label className="text-xs uppercase text-slate-500">
                   Min event duration ({minDuration}s)
                 </label>
 
@@ -522,17 +513,17 @@ export default function UploadPanel() {
               </div>
             </div>
 
-            {/* Button */}
             <button
               type="button"
               onClick={handleUpload}
               disabled={!selectedFile || processing}
               className="
                 mt-8 inline-flex w-full items-center
-                justify-center gap-2 rounded-full
-                bg-orange-500 px-6 py-3 text-sm
+                justify-center gap-2 rounded-xl
+                bg-amber-300 px-6 py-3 text-sm
                 font-semibold text-slate-950
-                transition hover:bg-orange-400
+                shadow-xl shadow-amber-300/15
+                transition hover:bg-amber-200
                 disabled:cursor-not-allowed
                 disabled:opacity-60
               "
@@ -558,15 +549,14 @@ export default function UploadPanel() {
           </div>
         </div>
 
-        {/* Progress */}
         <div
           className="
-            mt-8 rounded-[28px]
-            border border-white/5
-            bg-slate-950/85 p-5
+            mt-4 rounded-2xl
+            border border-white/10
+            bg-[#070b13]/88 p-5
           "
         >
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.24em] text-slate-500">
+          <div className="flex items-center justify-between text-xs uppercase text-slate-500">
             <span>Progress</span>
 
             <span className="text-slate-300">
@@ -582,9 +572,9 @@ export default function UploadPanel() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               className="
-                mt-6 rounded-[24px]
-                border border-white/5
-                bg-slate-900/80 p-4
+                mt-6 rounded-2xl
+                border border-white/10
+                bg-white/[0.04] p-4
               "
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

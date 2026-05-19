@@ -19,6 +19,8 @@
 
   --orange: #ff6b00;
   --orange-light: #ffb37d;
+  --cyan: #67e8f9;
+  --amber: #fcd34d;
 
   --shadow-orange: 0 24px 80px rgba(255, 107, 0, 0.24);
 
@@ -50,6 +52,11 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(103, 232, 249, 0.28);
+  color: #ffffff;
 }
 
 *,
@@ -88,6 +95,18 @@ body {
     background: var(--panel);
     border: 1px solid var(--border);
 
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .command-surface {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+      rgba(8, 12, 20, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 24px 80px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
   }
@@ -164,6 +183,13 @@ body {
   .scan-bar {
     animation: scan-line 3.8s linear infinite;
     will-change: transform, opacity;
+  }
+
+  .fine-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }
 
