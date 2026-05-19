@@ -151,6 +151,17 @@ def overlay(frame, image, coords):
     frame[y:y+h, x:x+w] = cv2.addWeighted(frame[y:y+h, x:x+w], 0.5, cut(image, coords), 0.5, 0)
 
 
+def create_video_writer(output_path, fps, frame_size):
+    """Create a browser-friendly MP4 writer, falling back when codecs are unavailable."""
+    for codec in ("avc1", "H264", "X264", "mp4v"):
+        fourcc = cv2.VideoWriter_fourcc(*codec)
+        writer = cv2.VideoWriter(output_path, fourcc, fps, frame_size)
+        if writer.isOpened():
+            return writer
+        writer.release()
+    raise RuntimeError("Unable to create a video writer for the recap output.")
+
+
 def sec2HMS(seconds):
     return tm.strftime('%M:%S', tm.gmtime(seconds))
 
@@ -233,8 +244,7 @@ def summarize_video(
         cv2.putText(final_video[t], text, org, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (252, 240, 3), 2)
 
     print(f"Writing recap video to {output_path}...")
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    writer = cv2.VideoWriter(output_path, fourcc, fps, (background.shape[1], background.shape[0]))
+    writer = create_video_writer(output_path, fps, (background.shape[1], background.shape[0]))
     total_final = len(final_video)
     for idx, frame in enumerate(final_video):
         writer.write(frame)

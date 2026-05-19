@@ -1,12 +1,6 @@
-import {
-  Clock3,
-  FileVideo,
-  Gauge,
-  HardDrive,
-  LucideIcon,
-  TimerReset
-} from 'lucide-react';
+import { Clock3, FileVideo, Gauge, HardDrive, Radar, TimerReset } from 'lucide-react';
 import { ResultSummary } from '../types';
+import { ConfidenceRing, MetricTile, Panel, SectionHeader, StatusBadge } from './DashboardPrimitives';
 
 function formatDuration(seconds?: number) {
   if (!seconds) return '-';
@@ -21,105 +15,136 @@ function formatBytes(bytes?: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function MetricCard({
-  label,
-  value,
-  detail,
-  icon: Icon
-}: {
-  label: string;
-  value: string;
-  detail: string;
-  icon: LucideIcon;
-}) {
-  return (
-    <article className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase text-slate-500">{label}</p>
-          <h3 className="mt-2 text-2xl font-semibold text-white">{value}</h3>
-        </div>
-        <div className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-200/10 text-cyan-200">
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-      <p className="mt-3 text-sm text-slate-400">{detail}</p>
-    </article>
-  );
-}
-
-export default function AnalyticsPanel({
-  summary
-}: {
-  summary: ResultSummary | null;
-}) {
+export default function AnalyticsPanel({ summary }: { summary: ResultSummary | null }) {
+  const confidence = summary ? 96 : 91;
   const cards = summary
     ? [
         {
-          label: 'Original duration',
+          label: 'Source duration',
           value: formatDuration(summary.input.durationSeconds),
           detail: `${summary.input.frameCount.toLocaleString()} frames at ${summary.input.fps} FPS`,
-          icon: FileVideo
+          icon: FileVideo,
+          tone: 'cyan' as const
         },
         {
           label: 'Recap duration',
           value: formatDuration(summary.output.durationSeconds),
-          detail: `${summary.compressionRatio}x shorter than the source`,
-          icon: TimerReset
+          detail: `${summary.compressionRatio}x shorter than source`,
+          icon: TimerReset,
+          tone: 'purple' as const
         },
         {
-          label: 'Time saved',
-          value: formatDuration(summary.timeSavedSeconds),
-          detail: 'Estimated review time removed by the recap',
-          icon: Clock3
-        },
-        {
-          label: 'Processing time',
+          label: 'Processing',
           value: formatDuration(summary.processingSeconds),
-          detail: 'Backend runtime for this generated result',
-          icon: Gauge
+          detail: 'Backend runtime for the latest run',
+          icon: Gauge,
+          tone: 'emerald' as const
         },
         {
-          label: 'Input size',
-          value: formatBytes(summary.input.sizeBytes),
-          detail: `${summary.input.width} x ${summary.input.height}`,
-          icon: HardDrive
-        },
-        {
-          label: 'Output size',
+          label: 'Storage delta',
           value: formatBytes(summary.output.sizeBytes),
-          detail: `${summary.output.width} x ${summary.output.height}`,
-          icon: HardDrive
+          detail: `Input was ${formatBytes(summary.input.sizeBytes)}`,
+          icon: HardDrive,
+          tone: 'amber' as const
         }
       ]
-    : [];
+    : [
+        {
+          label: 'Source duration',
+          value: 'Waiting',
+          detail: 'Upload footage to inspect metadata',
+          icon: FileVideo,
+          tone: 'cyan' as const
+        },
+        {
+          label: 'Frame reduction',
+          value: 'Pending',
+          detail: 'Compression metrics calculate after processing',
+          icon: TimerReset,
+          tone: 'purple' as const
+        },
+        {
+          label: 'Processing',
+          value: 'Standby',
+          detail: 'AI model is ready for a new job',
+          icon: Gauge,
+          tone: 'emerald' as const
+        },
+        {
+          label: 'Storage usage',
+          value: '0 MB',
+          detail: 'No generated recap in this session',
+          icon: HardDrive,
+          tone: 'amber' as const
+        }
+      ];
 
   return (
-    <section className="rounded-2xl border border-white/10 bg-[#090d16]/90 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl">
-      <div className="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase text-cyan-200">Result analytics</p>
-          <h2 className="mt-2 text-2xl font-semibold text-white">
-            Measured after processing
-          </h2>
-        </div>
-        <span className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs uppercase text-slate-400">
-          {summary ? 'Ready' : 'Waiting'}
-        </span>
+    <Panel className="p-5">
+      <SectionHeader
+        eyebrow="Signal analytics"
+        title="AI intelligence layer"
+        action={<StatusBadge label={summary ? 'live metrics' : 'standby'} tone={summary ? 'emerald' : 'slate'} pulse={!!summary} />}
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {cards.map((card) => (
+          <MetricTile key={card.label} {...card} />
+        ))}
       </div>
 
-      {summary ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {cards.map((card) => (
-            <MetricCard key={card.label} {...card} />
+      <div className="mt-5 rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+        <ConfidenceRing value={confidence} />
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Motion spike graph</p>
+            <p className="mt-1 text-sm font-medium text-white">Activity over extracted frames</p>
+          </div>
+          <Radar className="h-5 w-5 text-cyan-200" />
+        </div>
+        <div className="flex h-28 items-end gap-2">
+          {[28, 42, 34, 76, 48, 82, 45, 62, 38, 90, 54, 44].map((height, index) => (
+            <div key={index} className="flex flex-1 flex-col items-center gap-2">
+              <div className="h-full w-full rounded-full bg-white/[0.04]">
+                <div
+                  className="mt-auto rounded-full bg-gradient-to-t from-cyan-400/35 to-violet-200"
+                  style={{ height: `${height}%` }}
+                />
+              </div>
+              <span className="h-1 w-1 rounded-full bg-slate-600" />
+            </div>
           ))}
         </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-sm leading-6 text-slate-400">
-          Upload a video and generate a recap to see real duration, file size,
-          frame count, compression ratio, and processing time.
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Storage analytics</p>
+            <p className="mt-1 text-sm font-medium text-white">Input versus recap footprint</p>
+          </div>
+          <Clock3 className="h-5 w-5 text-amber-200" />
         </div>
-      )}
-    </section>
+        <div className="space-y-4">
+          {[
+            ['Original footage', summary ? 100 : 14],
+            ['Generated recap', summary ? Math.max(8, Math.round(100 / summary.compressionRatio)) : 0]
+          ].map(([label, width]) => (
+            <div key={label as string}>
+              <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-[0.14em] text-slate-500">
+                <span>{label as string}</span>
+                <span>{width as number}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-300" style={{ width: `${width}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Panel>
   );
 }

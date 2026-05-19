@@ -1,172 +1,92 @@
 import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
+  AlertCircle,
   BadgeCheck,
-  CloudUpload,
-  PlayCircle,
-  Loader2,
-  Link2,
+  Camera,
   CheckCircle2,
-  AlertCircle
+  CloudUpload,
+  Download,
+  FileVideo,
+  Link2,
+  Loader2,
+  MonitorDot,
+  Settings2,
+  SlidersHorizontal,
+  Sparkles
 } from 'lucide-react';
 import { ResultSummary } from '../types';
+import { Panel, SectionHeader, StatusBadge, Waveform } from './DashboardPrimitives';
 
-/* =========================
-   Constants
-========================= */
+const SUPPORTED_TYPES = ['video/mp4', 'video/avi', 'video/x-msvideo', 'video/quicktime', 'video/x-matroska', ''];
+const SUPPORTED_EXTENSIONS = ['.mp4', '.avi', '.mov', '.mkv'];
 
-const SUPPORTED_TYPES = [
-  'video/mp4',
-  'video/avi',
-  'video/x-msvideo',
-  'video/quicktime',
-  'video/x-matroska',
-  ''
-];
+type UploadState = 'idle' | 'ready' | 'uploading' | 'success' | 'error';
 
-const SUPPORTED_EXTENSIONS = [
-  '.mp4',
-  '.avi',
-  '.mov',
-  '.mkv'
-];
+const cameras = ['North Gate', 'Parking Lane', 'Warehouse East'];
 
-const MAX_PROGRESS = 94;
-
-/* =========================
-   Types
-========================= */
-
-type UploadState =
-  | 'idle'
-  | 'ready'
-  | 'uploading'
-  | 'success'
-  | 'error';
-
-/* =========================
-   Components
-========================= */
-
-function StatusBadge({
-  state
-}: {
-  state: UploadState;
-}) {
-  const config = {
-    idle: {
-      label: 'Awaiting upload',
-      className:
-        'bg-slate-900/70 text-slate-300 border-white/10'
-    },
-    ready: {
-      label: 'Ready to process',
-      className:
-        'bg-sky-400/10 text-sky-300 border-sky-400/20'
-    },
-    uploading: {
-      label: 'AI processing',
-      className:
-        'bg-orange-400/10 text-orange-300 border-orange-400/20'
-    },
-    success: {
-      label: 'Recap generated',
-      className:
-        'bg-emerald-400/10 text-emerald-300 border-emerald-400/20'
-    },
-    error: {
-      label: 'Upload failed',
-      className:
-        'bg-red-400/10 text-red-300 border-red-400/20'
-    }
-  };
-
-  const item = config[state];
-
+function ProgressBar({ progress }: { progress: number }) {
   return (
-    <div
-      className={`
-        inline-flex items-center gap-2 rounded-full
-        border px-4 py-2 text-xs uppercase
-        tracking-[0.22em]
-        ${item.className}
-      `}
-    >
-      <span className="h-2 w-2 rounded-full bg-current animate-pulse" />
-
-      {item.label}
-    </div>
-  );
-}
-
-function ProgressBar({
-  progress
-}: {
-  progress: number;
-}) {
-  return (
-    <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/5">
+    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.06]">
       <motion.div
         animate={{ width: `${progress}%` }}
-        transition={{ duration: 0.4 }}
-        className="
-          h-full rounded-full
-          bg-gradient-to-r
-          from-orange-500 to-sky-400
-        "
+        transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+        className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-violet-300 to-amber-200 shadow-[0_0_22px_rgba(103,232,249,0.42)]"
       />
     </div>
   );
 }
 
-/* =========================
-   Main Component
-========================= */
-
-export default function UploadPanel({
-  onResult
+function StageRow({
+  label,
+  detail,
+  active,
+  complete
 }: {
-  onResult?: (summary: ResultSummary | null) => void;
+  label: string;
+  detail: string;
+  active?: boolean;
+  complete?: boolean;
 }) {
-  const [selectedFile, setSelectedFile] =
-    useState<File | null>(null);
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-black/20 p-3">
+      <div
+        className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${
+          complete
+            ? 'bg-emerald-300/12 text-emerald-200'
+            : active
+              ? 'bg-cyan-300/12 text-cyan-200'
+              : 'bg-white/[0.055] text-slate-500'
+        }`}
+      >
+        {complete ? <CheckCircle2 className="h-4 w-4" /> : active ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-white">{label}</p>
+        <p className="text-xs leading-5 text-slate-500">{detail}</p>
+      </div>
+    </div>
+  );
+}
 
-  const [videoUrl, setVideoUrl] =
-    useState<string | null>(null);
-
+export default function UploadPanel({ onResult }: { onResult?: (summary: ResultSummary | null) => void }) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [jobMessage, setJobMessage] =
-    useState<string>('');
-
+  const [jobMessage, setJobMessage] = useState('');
   const [progress, setProgress] = useState(0);
-
-  const [processing, setProcessing] =
-    useState(false);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [interval, setInterval] = useState(10);
-
-  const [minDuration, setMinDuration] =
-    useState(4);
+  const [minDuration, setMinDuration] = useState(4);
+  const [camera, setCamera] = useState(cameras[0]);
 
   function setValidatedFile(file: File | null) {
-    const extension = file?.name
-      .slice(file.name.lastIndexOf('.'))
-      .toLowerCase();
+    const extension = file?.name.slice(file.name.lastIndexOf('.')).toLowerCase();
 
-    if (
-      file &&
-      !SUPPORTED_TYPES.includes(file.type) &&
-      !SUPPORTED_EXTENSIONS.includes(extension ?? '')
-    ) {
-      setError(
-        'Unsupported video type. Use MP4, AVI, MOV, or MKV.'
-      );
-
+    if (file && !SUPPORTED_TYPES.includes(file.type) && !SUPPORTED_EXTENSIONS.includes(extension ?? '')) {
+      setError('Unsupported video type. Use MP4, AVI, MOV, or MKV.');
       setSelectedFile(null);
-
       return;
     }
 
@@ -174,44 +94,40 @@ export default function UploadPanel({
     setVideoUrl(null);
     onResult?.(null);
     setSelectedFile(file);
-
     setProgress(file ? 10 : 0);
   }
 
-  /* =========================
-     Derived State
-  ========================= */
-
   const uploadState: UploadState = useMemo(() => {
     if (error) return 'error';
-
     if (processing) return 'uploading';
-
     if (videoUrl) return 'success';
-
     if (selectedFile) return 'ready';
-
     return 'idle';
   }, [error, processing, videoUrl, selectedFile]);
+
+  const statusTone = uploadState === 'success' ? 'emerald' : uploadState === 'error' ? 'rose' : uploadState === 'uploading' ? 'cyan' : 'slate';
+  const statusLabel = {
+    idle: 'Awaiting upload',
+    ready: 'Ready to process',
+    uploading: 'AI processing',
+    success: 'Recap generated',
+    error: 'Needs attention'
+  }[uploadState];
 
   const statusText = useMemo(() => {
     switch (uploadState) {
       case 'ready':
-        return 'Footage validated and ready.';
+        return 'Footage validated and ready for processing.';
       case 'uploading':
         return jobMessage || 'AI engine is analyzing footage.';
       case 'success':
-        return 'Recap successfully generated.';
+        return 'Recap successfully generated and ready to export.';
       case 'error':
         return error || 'Unexpected upload error.';
       default:
-        return 'Choose a video to start the recap workflow.';
+        return 'Choose a CCTV file to start the recap workflow.';
     }
   }, [uploadState, error, jobMessage]);
-
-  /* =========================
-     Job Status Polling
-  ========================= */
 
   useEffect(() => {
     if (!jobId) return;
@@ -225,14 +141,10 @@ export default function UploadPanel({
 
         if (!response.ok) {
           const data = await response.json().catch(() => null);
-          throw new Error(
-            data?.detail ||
-              'Unable to retrieve job status.'
-          );
+          throw new Error(data?.detail || 'Unable to retrieve job status.');
         }
 
         const data = await response.json();
-
         if (!isActive) return;
 
         setProgress(data.progress ?? 20);
@@ -256,7 +168,7 @@ export default function UploadPanel({
         }
 
         setProcessing(true);
-      } catch (err) {
+      } catch {
         if (!isActive) return;
         setJobMessage('Waiting for job status...');
       }
@@ -269,27 +181,15 @@ export default function UploadPanel({
       isActive = false;
       window.clearInterval(intervalId);
     };
-  }, [jobId]);
+  }, [jobId, onResult]);
 
-  /* =========================
-     File Selection
-  ========================= */
-
-  function handleFileChange(
-    event: ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0] ?? null;
-    setValidatedFile(file);
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    setValidatedFile(event.target.files?.[0] ?? null);
   }
-
-  /* =========================
-     Upload Logic
-  ========================= */
 
   async function handleUpload() {
     if (!selectedFile) {
       setError('Please select a video file.');
-
       return;
     }
 
@@ -301,36 +201,23 @@ export default function UploadPanel({
       setProgress(18);
 
       const formData = new FormData();
-
       formData.append('file', selectedFile);
       formData.append('interval', String(interval));
-      formData.append(
-        'min_duration',
-        String(minDuration)
-      );
+      formData.append('min_duration', String(minDuration));
 
       const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData,
+        body: formData
       });
 
       if (!response.ok) {
-        const data = await response
-          .json()
-          .catch(() => null);
-
-        throw new Error(
-          data?.detail || 'Upload failed.'
-        );
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.detail || 'Upload failed.');
       }
 
       const data = await response.json();
-
       setJobId(data.jobId ?? null);
-      setJobMessage(
-        data.message ||
-          'Footage queued for background processing.'
-      );
+      setJobMessage(data.message || 'Footage queued for background processing.');
       setProgress(data.progress ?? 15);
       setProcessing(true);
 
@@ -344,319 +231,221 @@ export default function UploadPanel({
     } catch (err) {
       setProgress(0);
       setProcessing(false);
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unexpected upload error.'
-      );
+      setError(err instanceof Error ? err.message : 'Unexpected upload error.');
     }
   }
 
   return (
-    <section
-      aria-labelledby="upload-heading"
-      className="
-        overflow-hidden rounded-2xl border border-white/10
-        bg-[#090d16]/90 p-5
-        shadow-2xl shadow-black/25 backdrop-blur-xl
-      "
-    >
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-xs uppercase text-cyan-200">
-            Recap generator
-          </p>
+    <Panel className="p-5 lg:p-6">
+      <SectionHeader
+        eyebrow="Upload pipeline"
+        title="Generate an intelligent recap"
+        action={<StatusBadge label={statusLabel} tone={statusTone} pulse={uploadState === 'uploading'} />}
+      />
 
-          <h2
-            id="upload-heading"
-            className="mt-2 text-3xl font-semibold text-white"
-          >
-            Upload footage and generate a compressed incident review.
-          </h2>
-        </div>
+      <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <label
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            setValidatedFile(event.dataTransfer.files?.[0] ?? null);
+          }}
+          className="group relative flex min-h-[380px] cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-dashed border-cyan-200/20 bg-[linear-gradient(135deg,rgba(8,145,178,0.14),rgba(20,14,45,0.28),rgba(3,7,18,0.7))] p-6 transition duration-300 hover:border-cyan-200/45"
+        >
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[size:32px_32px] opacity-45" />
+          <input
+            type="file"
+            hidden
+            accept="video/mp4,video/avi,video/x-msvideo,video/quicktime,video/x-matroska,.mp4,.avi,.mov,.mkv"
+            onChange={handleFileChange}
+          />
 
-        <StatusBadge state={uploadState} />
-      </div>
-
-      <div
-        className="
-          rounded-2xl border border-white/10
-          bg-black/24 p-4
-        "
-      >
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="max-w-2xl">
-            <div
-              className="
-                inline-flex items-center gap-2 rounded-xl
-                border border-amber-300/20 bg-amber-300/10 px-3 py-2
-                text-xs uppercase text-amber-100
-              "
-            >
-              <BadgeCheck className="h-4 w-4" />
-              End-to-end upload pipeline
-            </div>
-
-            <p className="mt-4 text-sm leading-6 text-slate-300">
-              Pick a video, tune the summary settings, and let the backend render a playable recap clip with timestamps.
-            </p>
+          <div className="relative z-10 flex items-center justify-between">
+            <StatusBadge label={camera} tone="cyan" />
+            <CloudUpload className="h-5 w-5 text-cyan-200" />
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.035] p-4">
-            <p className="text-xs uppercase text-slate-500">
-              Pipeline status
-            </p>
-
-            <p className="mt-2 text-lg font-semibold text-white" aria-live="polite">
-              {statusText}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <label
-            onDragOver={(event) => {
-              event.preventDefault();
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setValidatedFile(event.dataTransfer.files?.[0] ?? null);
-            }}
-            className="
-              group relative flex min-h-[300px] cursor-pointer flex-col
-              items-center justify-center overflow-hidden rounded-2xl
-              border border-dashed border-cyan-200/20
-              bg-[linear-gradient(135deg,rgba(8,145,178,0.14),rgba(15,23,42,0.36))]
-              p-8 text-center transition hover:border-cyan-200/50
-            "
-          >
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:30px_30px] opacity-40" />
-            <input
-              type="file"
-              hidden
-              accept="video/mp4,video/avi,video/x-msvideo,video/quicktime,video/x-matroska,.mp4,.avi,.mov,.mkv"
-              onChange={handleFileChange}
-            />
-
+          <div className="relative z-10 mx-auto max-w-sm text-center">
             <motion.div
-              whileHover={{ scale: 1.04 }}
-              className="
-                relative z-10 mb-5 grid h-16 w-16 place-items-center
-                rounded-2xl bg-cyan-200 text-slate-950
-                shadow-xl shadow-cyan-200/20
-              "
+              whileHover={{ scale: 1.04, rotate: -1 }}
+              className="mx-auto mb-5 grid h-20 w-20 place-items-center rounded-3xl bg-white text-slate-950 shadow-[0_22px_70px_rgba(255,255,255,0.14)]"
             >
-              <CloudUpload className="h-7 w-7" />
+              <FileVideo className="h-8 w-8" />
             </motion.div>
-
-            <h3 className="relative z-10 text-xl font-semibold text-white">
-              Select or drop footage
-            </h3>
-
-            <p className="relative z-10 mt-2 text-sm text-slate-400">
-              MP4, AVI, MOV, MKV supported
+            <h3 className="text-2xl font-semibold tracking-tight text-white">Drop footage here</h3>
+            <p className="mt-3 text-sm leading-6 text-slate-400">
+              Upload MP4, AVI, MOV, or MKV footage from a fixed CCTV camera.
             </p>
-
-            <span
-              className="
-                relative z-10 mt-5 rounded-xl border border-white/10
-                bg-white/10 px-4 py-2 text-xs uppercase text-slate-200
-              "
-            >
+            <span className="mt-5 inline-flex rounded-xl border border-white/[0.1] bg-white/[0.08] px-4 py-2 text-xs font-medium uppercase tracking-[0.14em] text-slate-200">
               Browse files
             </span>
-          </label>
+          </div>
 
-          <div
-            className="
-              rounded-2xl border border-white/10
-              bg-[#070b13]/88 p-5
-            "
-          >
-            <div className="flex items-start justify-between gap-4">
+          <div className="relative z-10 rounded-2xl border border-white/[0.08] bg-black/25 p-4 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Selected source</p>
+                <p className="mt-1 truncate text-sm font-medium text-white">{selectedFile?.name || 'No file selected'}</p>
+              </div>
+              <MonitorDot className="h-5 w-5 shrink-0 text-cyan-200" />
+            </div>
+          </div>
+        </label>
+
+        <div className="grid gap-4">
+          <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <p className="text-xs uppercase text-slate-500">
-                  Footage preview
-                </p>
-
-                <h3 className="mt-2 text-lg font-semibold text-white break-all">
-                  {selectedFile?.name ||
-                    'No file selected'}
-                </h3>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Camera selector</p>
+                <p className="mt-1 text-sm font-medium text-white">{camera}</p>
               </div>
+              <Camera className="h-5 w-5 text-cyan-200" />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1 2xl:grid-cols-3">
+              {cameras.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setCamera(item)}
+                  className={`rounded-xl border px-3 py-2 text-left text-xs font-medium transition ${
+                    camera === item
+                      ? 'border-cyan-200/30 bg-cyan-300/10 text-cyan-100'
+                      : 'border-white/[0.08] bg-white/[0.035] text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              <div
-                className="
-                  grid h-11 w-11 place-items-center
-                  rounded-xl bg-white/[0.06] text-cyan-200
-                "
-              >
-                <PlayCircle className="h-5 w-5" />
+          <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">AI model settings</p>
+                <p className="mt-1 text-sm font-medium text-white">Motion recap v1</p>
               </div>
+              <Settings2 className="h-5 w-5 text-violet-200" />
             </div>
 
-            <div className="mt-8 space-y-6">
+            <div className="space-y-5">
               <div>
-                <label className="text-xs uppercase text-slate-500">
-                  Interval ({interval}s)
-                </label>
-
+                <div className="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-slate-500">
+                  <span>Sampling interval</span>
+                  <span className="text-slate-300">{interval}s</span>
+                </div>
                 <input
                   type="range"
                   min="5"
                   max="30"
                   value={interval}
-                  onChange={(e) =>
-                    setInterval(Number(e.target.value))
-                  }
-                  className="mt-3 w-full accent-orange-400"
+                  onChange={(event) => setInterval(Number(event.target.value))}
+                  className="mt-3 w-full accent-cyan-300"
                 />
               </div>
 
               <div>
-                <label className="text-xs uppercase text-slate-500">
-                  Min event duration ({minDuration}s)
-                </label>
-
+                <div className="flex items-center justify-between text-xs uppercase tracking-[0.14em] text-slate-500">
+                  <span>Minimum event</span>
+                  <span className="text-slate-300">{minDuration}s</span>
+                </div>
                 <input
                   type="range"
                   min="1"
                   max="8"
                   value={minDuration}
-                  onChange={(e) =>
-                    setMinDuration(Number(e.target.value))
-                  }
-                  className="mt-3 w-full accent-sky-400"
+                  onChange={(event) => setMinDuration(Number(event.target.value))}
+                  className="mt-3 w-full accent-violet-300"
                 />
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={handleUpload}
-              disabled={!selectedFile || processing}
-              className="
-                mt-8 inline-flex w-full items-center
-                justify-center gap-2 rounded-xl
-                bg-amber-300 px-6 py-3 text-sm
-                font-semibold text-slate-950
-                shadow-xl shadow-amber-300/15
-                transition hover:bg-amber-200
-                disabled:cursor-not-allowed
-                disabled:opacity-60
-              "
-            >
-              {processing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <CloudUpload className="h-4 w-4" />
-              )}
-
-              {processing
-                ? 'Processing footage...'
-                : 'Run AI recap'}
-            </button>
-
-            {/* Error */}
-            {error && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-red-300">
-                <AlertCircle className="h-4 w-4" />
-                {error}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div
-          className="
-            mt-4 rounded-2xl
-            border border-white/10
-            bg-[#070b13]/88 p-5
-          "
-        >
-          <div className="flex items-center justify-between text-xs uppercase text-slate-500">
-            <span>Progress</span>
-
-            <span className="text-slate-300">
-              {progress}%
-            </span>
           </div>
 
-          <div
-            aria-label="Processing progress"
-            aria-valuemax={100}
-            aria-valuemin={0}
-            aria-valuenow={progress}
-            role="progressbar"
-          >
+          <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Pipeline status</p>
+              <SlidersHorizontal className="h-4 w-4 text-slate-500" />
+            </div>
+            <p className="text-sm font-medium leading-6 text-white" aria-live="polite">
+              {statusText}
+            </p>
             <ProgressBar progress={progress} />
           </div>
-
-          {/* Result */}
-          {videoUrl && (
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="
-                mt-6 rounded-2xl
-                border border-white/10
-                bg-white/[0.04] p-4
-              "
-            >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    Generated recap
-                  </p>
-
-                  <div className="mt-2 flex items-center gap-2 text-emerald-300">
-                    <CheckCircle2 className="h-4 w-4" />
-
-                    Ready to preview
-                  </div>
-
-                  <p className="mt-2 text-sm text-slate-400 break-all" aria-live="polite">
-                    Direct result URL: 
-                    <a
-                      href={videoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sky-300 underline"
-                    >
-                      {videoUrl}
-                    </a>
-                  </p>
-                </div>
-
-                <a
-                  href={videoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="
-                    inline-flex items-center gap-2
-                    rounded-full bg-white/5
-                    px-4 py-2 text-xs uppercase
-                    tracking-[0.22em] text-slate-200
-                    transition hover:bg-white/10
-                  "
-                >
-                  <Link2 className="h-4 w-4" />
-                  Open clip
-                </a>
-              </div>
-
-              <div className="mt-5 overflow-hidden rounded-3xl bg-slate-950">
-                <video
-                  controls
-                  src={videoUrl}
-                  className="w-full"
-                />
-              </div>
-            </motion.div>
-          )}
         </div>
       </div>
-    </section>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+          <div className="mb-4 flex items-center gap-2 text-sm font-medium text-white">
+            <BadgeCheck className="h-4 w-4 text-emerald-200" />
+            Processing stages
+          </div>
+          <div className="grid gap-3">
+            <StageRow label="Validate source" detail="Codec, frame size, and duration scan" complete={!!selectedFile || progress > 10} />
+            <StageRow label="Extract motion fields" detail="Background subtraction and contour grouping" active={processing && progress < 70} complete={progress >= 70} />
+            <StageRow label="Render recap" detail="Timestamp compositor and final MP4 export" active={processing && progress >= 70} complete={progress === 100} />
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-4">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">Signal preview</p>
+              <p className="mt-1 text-sm font-medium text-white">Motion density waveform</p>
+            </div>
+            <Sparkles className="h-4 w-4 text-violet-200" />
+          </div>
+          <Waveform active={uploadState === 'uploading' || uploadState === 'ready'} />
+        </div>
+      </div>
+
+      {error && (
+        <div className="mt-5 flex items-center gap-2 rounded-xl border border-rose-300/20 bg-rose-300/10 p-4 text-sm text-rose-200">
+          <AlertCircle className="h-4 w-4" />
+          {error}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={handleUpload}
+        disabled={!selectedFile || processing}
+        className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-white px-6 py-4 text-sm font-semibold text-slate-950 shadow-[0_20px_70px_rgba(255,255,255,0.13)] transition hover:scale-[1.006] hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CloudUpload className="h-4 w-4" />}
+        {processing ? 'Processing footage...' : 'Run AI recap'}
+      </button>
+
+      {videoUrl && (
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-5 rounded-2xl border border-emerald-300/20 bg-emerald-300/[0.06] p-4"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-emerald-200">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="text-sm font-medium">Generated recap ready</span>
+              </div>
+              <p className="mt-2 text-sm text-slate-400">Preview the clip or export it for incident review.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <a href={videoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.08] px-4 py-2 text-xs font-medium uppercase tracking-[0.12em] text-slate-200 transition hover:bg-white/[0.12]">
+                <Link2 className="h-4 w-4" />
+                Open
+              </a>
+              <a href={videoUrl} download className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-950 transition hover:bg-cyan-100">
+                <Download className="h-4 w-4" />
+                Download
+              </a>
+            </div>
+          </div>
+          <div className="mt-5 overflow-hidden rounded-2xl bg-slate-950">
+            <video controls src={videoUrl} className="w-full" />
+          </div>
+        </motion.div>
+      )}
+    </Panel>
   );
 }

@@ -88,15 +88,22 @@ def _process_video_job(job_id: str, input_path: str, output_path: str, interval:
     JOBS[job_id]['message'] = 'Analyzing uploaded footage...'
 
     try:
+        def update_progress(progress: int, message: str = ''):
+            job = JOBS[job_id]
+            job['progress'] = max(job.get('progress', 0), min(progress, 95))
+            if message:
+                job['message'] = message
+
         result_path = summarize_video(
             input_path,
             output_path=output_path,
             interval_bw_divisions=interval,
             gap_bw_divisions=0.25,
             min_seconds=min_duration,
+            progress_callback=update_progress,
         )
 
-        JOBS[job_id]['progress'] = 70
+        JOBS[job_id]['progress'] = 96
         JOBS[job_id]['status'] = 'writing'
         JOBS[job_id]['message'] = 'Generating video recap...'
         JOBS[job_id]['videoUrl'] = f'/results/{Path(result_path).name}'
