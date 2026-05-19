@@ -1,0 +1,8 @@
+progressbar2==3.47.0
+opencv-python>=4.1.0
+numpy>=1.16.0
+gradio>=3.0.0
+fastapi>=0.110.0
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+aiofiles>=23.1.0
