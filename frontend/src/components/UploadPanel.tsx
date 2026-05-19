@@ -3,13 +3,13 @@ import { motion } from 'framer-motion';
 import {
   BadgeCheck,
   CloudUpload,
-  FileText,
   PlayCircle,
   Loader2,
   Link2,
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import { ResultSummary } from '../types';
 
 /* =========================
    Constants
@@ -123,7 +123,11 @@ function ProgressBar({
    Main Component
 ========================= */
 
-export default function UploadPanel() {
+export default function UploadPanel({
+  onResult
+}: {
+  onResult?: (summary: ResultSummary | null) => void;
+}) {
   const [selectedFile, setSelectedFile] =
     useState<File | null>(null);
 
@@ -146,6 +150,33 @@ export default function UploadPanel() {
 
   const [minDuration, setMinDuration] =
     useState(4);
+
+  function setValidatedFile(file: File | null) {
+    const extension = file?.name
+      .slice(file.name.lastIndexOf('.'))
+      .toLowerCase();
+
+    if (
+      file &&
+      !SUPPORTED_TYPES.includes(file.type) &&
+      !SUPPORTED_EXTENSIONS.includes(extension ?? '')
+    ) {
+      setError(
+        'Unsupported video type. Use MP4, AVI, MOV, or MKV.'
+      );
+
+      setSelectedFile(null);
+
+      return;
+    }
+
+    setError(null);
+    setVideoUrl(null);
+    onResult?.(null);
+    setSelectedFile(file);
+
+    setProgress(file ? 10 : 0);
+  }
 
   /* =========================
      Derived State
@@ -174,7 +205,7 @@ export default function UploadPanel() {
       case 'error':
         return error || 'Unexpected upload error.';
       default:
-        return 'Secure ingest chamber awaiting footage.';
+        return 'Choose a video to start the recap workflow.';
     }
   }, [uploadState, error, jobMessage]);
 
@@ -209,6 +240,7 @@ export default function UploadPanel() {
 
         if (data.status === 'completed') {
           setVideoUrl(data.videoUrl);
+          onResult?.(data.summary ?? null);
           setProcessing(false);
           setProgress(100);
           setJobId(null);
@@ -247,29 +279,7 @@ export default function UploadPanel() {
     event: ChangeEvent<HTMLInputElement>
   ) {
     const file = event.target.files?.[0] ?? null;
-    const extension = file?.name
-      .slice(file.name.lastIndexOf('.'))
-      .toLowerCase();
-
-    if (
-      file &&
-      !SUPPORTED_TYPES.includes(file.type) &&
-      !SUPPORTED_EXTENSIONS.includes(extension ?? '')
-    ) {
-      setError(
-        'Unsupported video type. Use MP4, AVI, MOV, or MKV.'
-      );
-
-      setSelectedFile(null);
-
-      return;
-    }
-
-    setError(null);
-    setVideoUrl(null);
-    setSelectedFile(file);
-
-    setProgress(file ? 10 : 0);
+    setValidatedFile(file);
   }
 
   /* =========================
@@ -286,6 +296,7 @@ export default function UploadPanel() {
     try {
       setError(null);
       setVideoUrl(null);
+      onResult?.(null);
       setProcessing(true);
       setProgress(18);
 
@@ -325,6 +336,7 @@ export default function UploadPanel() {
 
       if (data.status === 'completed') {
         setVideoUrl(data.videoUrl);
+        onResult?.(data.summary ?? null);
         setProgress(100);
         setProcessing(false);
         setJobId(null);
@@ -396,7 +408,7 @@ export default function UploadPanel() {
               Pipeline status
             </p>
 
-            <p className="mt-2 text-lg font-semibold text-white">
+            <p className="mt-2 text-lg font-semibold text-white" aria-live="polite">
               {statusText}
             </p>
           </div>
@@ -404,6 +416,13 @@ export default function UploadPanel() {
 
         <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
           <label
+            onDragOver={(event) => {
+              event.preventDefault();
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              setValidatedFile(event.dataTransfer.files?.[0] ?? null);
+            }}
             className="
               group relative flex min-h-[300px] cursor-pointer flex-col
               items-center justify-center overflow-hidden rounded-2xl
@@ -564,7 +583,15 @@ export default function UploadPanel() {
             </span>
           </div>
 
-          <ProgressBar progress={progress} />
+          <div
+            aria-label="Processing progress"
+            aria-valuemax={100}
+            aria-valuemin={0}
+            aria-valuenow={progress}
+            role="progressbar"
+          >
+            <ProgressBar progress={progress} />
+          </div>
 
           {/* Result */}
           {videoUrl && (
@@ -589,7 +616,7 @@ export default function UploadPanel() {
                     Ready to preview
                   </div>
 
-                  <p className="mt-2 text-sm text-slate-400 break-all">
+                  <p className="mt-2 text-sm text-slate-400 break-all" aria-live="polite">
                     Direct result URL: 
                     <a
                       href={videoUrl}

@@ -1,159 +1,125 @@
 import {
-  Activity,
-  AlertTriangle,
   Clock3,
-  Eye,
-  ShieldCheck,
-  Sparkles,
-  LucideIcon
+  FileVideo,
+  Gauge,
+  HardDrive,
+  LucideIcon,
+  TimerReset
 } from 'lucide-react';
+import { ResultSummary } from '../types';
 
-type Card = {
-  title: string;
+function formatDuration(seconds?: number) {
+  if (!seconds) return '-';
+  const minutes = Math.floor(seconds / 60);
+  const remaining = Math.round(seconds % 60);
+  return minutes > 0 ? `${minutes}m ${remaining}s` : `${remaining}s`;
+}
+
+function formatBytes(bytes?: number) {
+  if (!bytes) return '-';
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  icon: Icon
+}: {
+  label: string;
   value: string;
+  detail: string;
   icon: LucideIcon;
-  accent: string;
-};
-
-const cards: Card[] = [
-  {
-    title: 'Frames analyzed',
-    value: '12,842',
-    icon: Eye,
-    accent: 'from-orange-500 to-sky-400'
-  },
-  {
-    title: 'Active objects',
-    value: '18',
-    icon: Activity,
-    accent: 'from-sky-400 to-indigo-500'
-  },
-  {
-    title: 'AI confidence',
-    value: '98.6%',
-    icon: ShieldCheck,
-    accent: 'from-emerald-400 to-sky-400'
-  },
-  {
-    title: 'Motion intensity',
-    value: 'High',
-    icon: Sparkles,
-    accent: 'from-orange-500 to-red-500'
-  },
-  {
-    title: 'Suspicious events',
-    value: '7',
-    icon: AlertTriangle,
-    accent: 'from-red-500 to-orange-400'
-  },
-  {
-    title: 'Processing speed',
-    value: '0.42s/frame',
-    icon: Clock3,
-    accent: 'from-slate-400 to-slate-200'
-  }
-];
-
-function MetricCard({ card }: { card: Card }) {
-  const Icon = card.icon;
-
+}) {
   return (
-    <article
-      className="
-        group relative overflow-hidden rounded-3xl
-        border border-white/10 bg-slate-950/80
-        p-5 transition-all duration-300
-        hover:-translate-y-1 hover:border-white/20
-      "
-    >
-      {/* Top Accent */}
-      <div
-        className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${card.accent}`}
-      />
-
-      {/* Soft Glow */}
-      <div
-        className={`
-          absolute -right-10 -top-10 h-32 w-32 rounded-full
-          bg-gradient-to-br ${card.accent}
-          opacity-10 blur-3xl transition-opacity duration-300
-          group-hover:opacity-20
-        `}
-      />
-
-      <div className="relative z-10 flex items-start justify-between">
+    <article className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-400">{card.title}</p>
-
-          <h3 className="mt-2 text-3xl font-bold tracking-tight text-white">
-            {card.value}
-          </h3>
+          <p className="text-xs uppercase text-slate-500">{label}</p>
+          <h3 className="mt-2 text-2xl font-semibold text-white">{value}</h3>
         </div>
-
-        <div
-          className={`
-            flex h-12 w-12 items-center justify-center rounded-2xl
-            bg-gradient-to-br ${card.accent}
-            shadow-lg
-          `}
-        >
-          <Icon className="h-5 w-5 text-white" />
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-200/10 text-cyan-200">
+          <Icon className="h-5 w-5" />
         </div>
       </div>
-
-      <div className="relative z-10 mt-6 flex items-center justify-between">
-        <span className="text-xs text-slate-500">
-          Real-time analytics
-        </span>
-
-        <span className="text-xs uppercase tracking-widest text-slate-500">
-          Live
-        </span>
-      </div>
+      <p className="mt-3 text-sm text-slate-400">{detail}</p>
     </article>
   );
 }
 
-export default function AnalyticsPanel() {
-  return (
-    <section
-      className="
-        rounded-[36px] border border-white/10
-        bg-[#060816]/90 p-6 backdrop-blur-xl
-      "
-    >
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            AI Metrics
-          </p>
+export default function AnalyticsPanel({
+  summary
+}: {
+  summary: ResultSummary | null;
+}) {
+  const cards = summary
+    ? [
+        {
+          label: 'Original duration',
+          value: formatDuration(summary.input.durationSeconds),
+          detail: `${summary.input.frameCount.toLocaleString()} frames at ${summary.input.fps} FPS`,
+          icon: FileVideo
+        },
+        {
+          label: 'Recap duration',
+          value: formatDuration(summary.output.durationSeconds),
+          detail: `${summary.compressionRatio}x shorter than the source`,
+          icon: TimerReset
+        },
+        {
+          label: 'Time saved',
+          value: formatDuration(summary.timeSavedSeconds),
+          detail: 'Estimated review time removed by the recap',
+          icon: Clock3
+        },
+        {
+          label: 'Processing time',
+          value: formatDuration(summary.processingSeconds),
+          detail: 'Backend runtime for this generated result',
+          icon: Gauge
+        },
+        {
+          label: 'Input size',
+          value: formatBytes(summary.input.sizeBytes),
+          detail: `${summary.input.width} x ${summary.input.height}`,
+          icon: HardDrive
+        },
+        {
+          label: 'Output size',
+          value: formatBytes(summary.output.sizeBytes),
+          detail: `${summary.output.width} x ${summary.output.height}`,
+          icon: HardDrive
+        }
+      ]
+    : [];
 
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white">
-            Platform Intelligence
+  return (
+    <section className="rounded-2xl border border-white/10 bg-[#090d16]/90 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase text-cyan-200">Result analytics</p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            Measured after processing
           </h2>
         </div>
+        <span className="rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs uppercase text-slate-400">
+          {summary ? 'Ready' : 'Waiting'}
+        </span>
+      </div>
 
-        <div
-          className="
-            flex items-center gap-2 rounded-full
-            border border-emerald-400/20
-            bg-emerald-400/10 px-4 py-2
-            text-xs uppercase tracking-[0.2em]
-            text-emerald-300
-          "
-        >
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          Live
+      {summary ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {cards.map((card) => (
+            <MetricCard key={card.label} {...card} />
+          ))}
         </div>
-      </div>
-
-      {/* Metrics */}
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {cards.map((card) => (
-          <MetricCard key={card.title} card={card} />
-        ))}
-      </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-sm leading-6 text-slate-400">
+          Upload a video and generate a recap to see real duration, file size,
+          frame count, compression ratio, and processing time.
+        </div>
+      )}
     </section>
   );
 }

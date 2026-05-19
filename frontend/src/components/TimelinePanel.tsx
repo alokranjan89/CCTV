@@ -1,241 +1,78 @@
-import { motion } from 'framer-motion';
-import {
-  Clock3,
-  MapPin,
-  ShieldCheck,
-  LucideIcon
-} from 'lucide-react';
+import { CheckCircle2, Clock3, FileVideo, Settings2 } from 'lucide-react';
+import { ResultSummary } from '../types';
 
-/* =========================
-   Types
-========================= */
-
-type EventItem = {
-  time: string;
-  label: string;
-  status: string;
-  tone: string;
-  confidence: number;
-};
-
-/* =========================
-   Data
-========================= */
-
-const events: EventItem[] = [
-  {
-    time: '00:23',
-    label: 'Perimeter breach',
-    status: 'Threat',
-    tone: 'text-red-300',
-    confidence: 96
-  },
-  {
-    time: '01:08',
-    label: 'Object cluster',
-    status: 'Monitoring',
-    tone: 'text-orange-300',
-    confidence: 82
-  },
-  {
-    time: '02:14',
-    label: 'Person anomaly',
-    status: 'Investigate',
-    tone: 'text-sky-300',
-    confidence: 91
-  },
-  {
-    time: '03:52',
-    label: 'Heat spike',
-    status: 'Alert',
-    tone: 'text-amber-300',
-    confidence: 74
-  }
-];
-
-/* =========================
-   Animations
-========================= */
-
-const container = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.08
-    }
-  }
-};
-
-const fadeUp = {
-  hidden: {
-    opacity: 0,
-    y: 18
-  },
-  visible: {
-    opacity: 1,
-    y: 0
-  }
-};
-
-/* =========================
-   Components
-========================= */
-
-function LiveBadge() {
-  return (
-    <div
-      className="
-        inline-flex items-center gap-2 rounded-full
-        border border-white/10 bg-slate-900/70
-        px-4 py-2 text-xs uppercase
-        tracking-[0.22em] text-slate-300
-      "
-    >
-      <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-
-      <Clock3 className="h-4 w-4" />
-
-      Live feed
-    </div>
-  );
+function formatDuration(seconds?: number) {
+  if (!seconds) return '-';
+  const minutes = Math.floor(seconds / 60);
+  const remaining = Math.round(seconds % 60);
+  return minutes > 0 ? `${minutes}m ${remaining}s` : `${remaining}s`;
 }
 
-function ConfidenceBar({
-  confidence
+export default function TimelinePanel({
+  summary
 }: {
-  confidence: number;
+  summary: ResultSummary | null;
 }) {
-  return (
-    <div className="rounded-[24px] bg-slate-900/80 p-4">
-      <div className="flex items-center justify-between text-sm text-slate-400">
-        <span>Confidence</span>
+  const steps = summary
+    ? [
+        {
+          label: 'Source analyzed',
+          detail: `${summary.input.frameCount.toLocaleString()} frames scanned from the uploaded file`,
+          icon: FileVideo
+        },
+        {
+          label: 'Summary settings applied',
+          detail: `Interval ${summary.settings.interval}s, minimum event duration ${summary.settings.minDuration}s`,
+          icon: Settings2
+        },
+        {
+          label: 'Recap generated',
+          detail: `${formatDuration(summary.input.durationSeconds)} reduced to ${formatDuration(summary.output.durationSeconds)}`,
+          icon: CheckCircle2
+        }
+      ]
+    : [];
 
-        <span className="text-white">
-          {confidence}%
-        </span>
-      </div>
-
-      <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/5">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${confidence}%` }}
-          transition={{ duration: 0.8 }}
-          className="
-            h-full rounded-full
-            bg-gradient-to-r
-            from-orange-500 to-sky-400
-          "
-        />
-      </div>
-    </div>
-  );
-}
-
-function TimelineCard({
-  event
-}: {
-  event: EventItem;
-}) {
-  return (
-    <motion.article
-      variants={fadeUp}
-      className="
-        rounded-[30px] border border-white/10
-        bg-slate-950/80 p-5
-        backdrop-blur-xl
-      "
-    >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.28em] text-slate-500">
-            {event.time}
-          </p>
-
-          <h3 className="mt-2 text-lg font-semibold text-white">
-            {event.label}
-          </h3>
-        </div>
-
-        <span
-          className={`
-            rounded-full bg-white/5 px-3 py-1
-            text-[11px] font-semibold uppercase
-            tracking-[0.22em] ${event.tone}
-          `}
-        >
-          {event.status}
-        </span>
-      </div>
-
-      {/* Content */}
-      <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_0.68fr]">
-        {/* Description */}
-        <div className="rounded-[24px] bg-slate-900/80 p-4">
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <MapPin className="h-4 w-4 text-sky-300" />
-
-            Tactical zone: Sector B
-          </div>
-
-          <p className="mt-3 text-sm leading-6 text-slate-300">
-            AI grouped multiple motion vectors and elevated this checkpoint as a sustained anomaly.
-          </p>
-        </div>
-
-        {/* Confidence */}
-        <ConfidenceBar confidence={event.confidence} />
-      </div>
-    </motion.article>
-  );
-}
-
-/* =========================
-   Main Component
-========================= */
-
-export default function TimelinePanel() {
   return (
     <section
       aria-labelledby="timeline-heading"
-      className="
-        rounded-[36px] border border-white/5
-        bg-[#060816]/90 p-6
-        backdrop-blur-xl
-      "
+      className="rounded-2xl border border-white/10 bg-[#090d16]/90 p-5 shadow-2xl shadow-black/25 backdrop-blur-xl"
     >
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between gap-4">
+      <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Smart timeline
-          </p>
-
-          <h2
-            id="timeline-heading"
-            className="mt-3 text-3xl font-semibold tracking-tight text-white"
-          >
-            Event clustering
+          <p className="text-xs uppercase text-cyan-200">Processing timeline</p>
+          <h2 id="timeline-heading" className="mt-2 text-2xl font-semibold text-white">
+            What happened in this run
           </h2>
         </div>
-
-        <LiveBadge />
+        <Clock3 className="h-5 w-5 text-slate-400" />
       </div>
 
-      {/* Timeline */}
-      <motion.div
-        variants={container}
-        initial="hidden"
-        animate="visible"
-        className="space-y-4"
-      >
-        {events.map((event) => (
-          <TimelineCard
-            key={event.time}
-            event={event}
-          />
-        ))}
-      </motion.div>
+      {summary ? (
+        <div className="space-y-3">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            return (
+              <article key={step.label} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                <div className="flex gap-4">
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-300 text-slate-950">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-slate-500">Step {index + 1}</p>
+                    <h3 className="mt-1 text-base font-semibold text-white">{step.label}</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-400">{step.detail}</p>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-sm leading-6 text-slate-400">
+          The timeline will populate after the backend finishes a recap job.
+        </div>
+      )}
     </section>
   );
 }

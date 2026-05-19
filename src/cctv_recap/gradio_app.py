@@ -140,15 +140,15 @@ placeholder_events = """
 <div class='panel' style='padding:24px;'>
   <div style='display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;'>
     <div>
-      <div style='font-size:0.95rem;color:#94a3b8;'>Smart Event Detection</div>
-      <div style='font-size:1.25rem;font-weight:700;margin-top:6px;'>AI surveillance alerts</div>
+      <div style='font-size:0.95rem;color:#94a3b8;'>Event recap preview</div>
+      <div style='font-size:1.25rem;font-weight:700;margin-top:6px;'>Example motion highlights</div>
     </div>
     <div class='highlight-pill'>Demo preview</div>
   </div>
   <div style='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px;'>
     <div class='stats-card'><div style='font-size:0.95rem;color:#fcd34d;font-weight:700;'>Motion Event</div><div style='margin-top:10px;font-size:1rem;'>02:14 — footprint detected in perimeter zone.</div></div>
     <div class='stats-card'><div style='font-size:0.95rem;color:#f97316;font-weight:700;'>Unknown Person</div><div style='margin-top:10px;font-size:1rem;'>AI flagged an unrecognized individual at gate A.</div></div>
-    <div class='stats-card'><div style='font-size:0.95rem;color:#38bdf8;font-weight:700;'>Vehicle Movement</div><div style='margin-top:10px;font-size:1rem;'>Suspicious vehicle path identified along sector 4.</div></div>
+    <div class='stats-card'><div style='font-size:0.95rem;color:#38bdf8;font-weight:700;'>Vehicle Movement</div><div style='margin-top:10px;font-size:1rem;'>Vehicle movement identified along sector 4.</div></div>
     <div class='stats-card'><div style='font-size:0.95rem;color:#34d399;font-weight:700;'>Crowd Activity</div><div style='margin-top:10px;font-size:1rem;'>Multiple moving objects detected in foyer.</div></div>
   </div>
 </div>
@@ -170,7 +170,7 @@ empty_activity = """
   <div style='font-size:0.95rem;color:#94a3b8;margin-bottom:14px;'>System activity</div>
   <div>
     <p>• Platform initialized.</p>
-    <p>• AI surveillance kernel ready.</p>
+    <p>• Recap engine ready.</p>
     <p>• No active footage yet.</p>
     <p>• Upload a file to begin automated incident review.</p>
   </div>
@@ -223,10 +223,10 @@ def run_ui(video_file, interval, min_duration):
 <div class='panel' style='padding:24px;'>
   <div style='display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;'>
     <div>
-      <div style='font-size:0.95rem;color:#94a3b8;'>Detected events</div>
-      <div style='font-size:1.25rem;font-weight:700;margin-top:6px;'>AI surveillance summary</div>
+      <div style='font-size:0.95rem;color:#94a3b8;'>Detected motion segments</div>
+      <div style='font-size:1.25rem;font-weight:700;margin-top:6px;'>Generated recap summary</div>
     </div>
-    <div class='highlight-pill'>Live data</div>
+    <div class='highlight-pill'>Generated</div>
   </div>
   <div style='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px;'>
     <div class='stats-card'><div style='font-size:0.95rem;color:#fcd34d;font-weight:700;'>01:02 —<br>Track initiated</div></div>
@@ -258,11 +258,11 @@ with gr.Blocks() as demo:
 <div style='display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:28px;'>
   <div>
     <div style='font-size:0.95rem;color:#f97316;font-weight:700;'>CCTV RECAP AI</div>
-    <div style='font-size:2rem;font-weight:800;line-height:1.05;'>Premium Surveillance Command Center</div>
+    <div style='font-size:2rem;font-weight:800;line-height:1.05;'>CCTV Recap Studio</div>
   </div>
   <div style='display:flex;gap:10px;flex-wrap:wrap;align-items:center;'>
-    <div style='padding:10px 16px;border-radius:14px;background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.14);'>Live AI mode</div>
-    <div style='padding:10px 16px;border-radius:14px;background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.14);'>Secure cloud staging</div>
+    <div style='padding:10px 16px;border-radius:14px;background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.14);'>Local processing</div>
+    <div style='padding:10px 16px;border-radius:14px;background:rgba(15,23,42,0.9);border:1px solid rgba(148,163,184,0.14);'>Static camera recap</div>
   </div>
 </div>
 """)
@@ -275,15 +275,15 @@ with gr.Blocks() as demo:
 <div class='panel hero-panel'>
   <div style='display:flex;justify-content:space-between;align-items:start;gap:18px;flex-wrap:wrap;'>
     <div>
-      <div style='font-size:0.95rem;color:#94a3b8;'>Intelligent surveillance for modern operations</div>
+      <div style='font-size:0.95rem;color:#94a3b8;'>Video summarization for fixed CCTV footage</div>
       <div style='font-size:2rem;font-weight:800;margin-top:12px;line-height:1.08;'>Review hours of CCTV in minutes with AI-powered incident summarization.</div>
     </div>
-    <div class='highlight-pill'>Enterprise grade</div>
+    <div class='highlight-pill'>Project demo</div>
   </div>
   <div style='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px;'>
-    <div class='stats-card'><div style='font-size:0.85rem;color:#94a3b8;'>Live model</div><div style='font-size:1.6rem;font-weight:700;margin-top:10px;'>SurveilNet 4.2</div></div>
-    <div class='stats-card'><div style='font-size:0.85rem;color:#94a3b8;'>Trust score</div><div style='font-size:1.6rem;font-weight:700;margin-top:10px;'>96.4%</div></div>
-    <div class='stats-card'><div style='font-size:0.85rem;color:#94a3b8;'>Retention</div><div style='font-size:1.6rem;font-weight:700;margin-top:10px;'>Realtime</div></div>
+    <div class='stats-card'><div style='font-size:0.85rem;color:#94a3b8;'>Engine</div><div style='font-size:1.6rem;font-weight:700;margin-top:10px;'>OpenCV</div></div>
+    <div class='stats-card'><div style='font-size:0.85rem;color:#94a3b8;'>Best input</div><div style='font-size:1.6rem;font-weight:700;margin-top:10px;'>Fixed angle</div></div>
+    <div class='stats-card'><div style='font-size:0.85rem;color:#94a3b8;'>Output</div><div style='font-size:1.6rem;font-weight:700;margin-top:10px;'>MP4 recap</div></div>
   </div>
 </div>
 """)
@@ -295,9 +295,9 @@ with gr.Blocks() as demo:
   <div style='display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;'>
     <div>
       <div style='font-size:0.95rem;color:#94a3b8;'>Live monitor</div>
-      <div style='font-size:1.25rem;font-weight:700;margin-top:4px;'>AI event dashboard</div>
+      <div style='font-size:1.25rem;font-weight:700;margin-top:4px;'>Recap preview</div>
     </div>
-    <div class='highlight-pill'>Surveillance feed</div>
+    <div class='highlight-pill'>Waiting for upload</div>
   </div>
   <div style='margin-top:24px;border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);background:#08101f;'>
     <div style='padding:20px;color:#cbd5e1;'>No video loaded yet. Upload footage to activate the live recap preview. The AI dashboard will show motion zones, event markers, and summary highlights here.</div>
@@ -346,14 +346,14 @@ with gr.Blocks() as demo:
   <div style='display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;'>
     <div>
       <div style='font-size:0.95rem;color:#94a3b8;'>Recent summaries</div>
-      <div style='font-size:1.35rem;font-weight:700;margin-top:8px;'>Review history & incident stamps</div>
+      <div style='font-size:1.35rem;font-weight:700;margin-top:8px;'>Review history & recap notes</div>
     </div>
     <div class='highlight-pill'>Read-only</div>
   </div>
   <div style='margin-top:18px;display:grid;gap:14px;'>
-    <div class='stats-card'><div style='font-size:0.95rem;color:#f97316;font-weight:700;'>Apr 26, 2026</div><div style='margin-top:10px;'>Perimeter breach recap generated in 00:38.</div></div>
-    <div class='stats-card'><div style='font-size:0.95rem;color:#38bdf8;font-weight:700;'>Apr 24, 2026</div><div style='margin-top:10px;'>Unauthorized vehicle detected and tagged.</div></div>
-    <div class='stats-card'><div style='font-size:0.95rem;color:#34d399;font-weight:700;'>Apr 21, 2026</div><div style='margin-top:10px;'>Crowd movement heatmap exported.</div></div>
+    <div class='stats-card'><div style='font-size:0.95rem;color:#f97316;font-weight:700;'>Sample 1</div><div style='margin-top:10px;'>Recap generated from uploaded CCTV footage.</div></div>
+    <div class='stats-card'><div style='font-size:0.95rem;color:#38bdf8;font-weight:700;'>Sample 2</div><div style='margin-top:10px;'>Vehicle movement summarized into a shorter clip.</div></div>
+    <div class='stats-card'><div style='font-size:0.95rem;color:#34d399;font-weight:700;'>Sample 3</div><div style='margin-top:10px;'>Crowd movement review prepared for playback.</div></div>
   </div>
 </div>
 """)

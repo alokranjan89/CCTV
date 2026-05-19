@@ -1,15 +1,17 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Activity,
   BellRing,
   Camera,
   LayoutDashboard,
+  LucideIcon,
   Radar,
   ShieldCheck,
   Sparkles,
   Zap
 } from 'lucide-react';
+import { ResultSummary } from './types';
 
 const HeroPanel = lazy(() => import('./components/HeroPanel'));
 const UploadPanel = lazy(() => import('./components/UploadPanel'));
@@ -22,12 +24,6 @@ const navItems = [
   { label: 'Upload', icon: Camera },
   { label: 'Signals', icon: Radar },
   { label: 'Events', icon: BellRing }
-];
-
-const overviewStats = [
-  { label: 'Engine', value: 'Online', icon: ShieldCheck, tone: 'text-emerald-300' },
-  { label: 'Scan rate', value: '12.8K/min', icon: Zap, tone: 'text-cyan-200' },
-  { label: 'Focus', value: '7 events', icon: Activity, tone: 'text-amber-200' }
 ];
 
 function LoadingPanel() {
@@ -44,7 +40,7 @@ function StatPill({
 }: {
   label: string;
   value: string;
-  icon: typeof ShieldCheck;
+  icon: LucideIcon;
   tone: string;
 }) {
   return (
@@ -63,6 +59,36 @@ function StatPill({
 }
 
 export default function App() {
+  const [resultSummary, setResultSummary] = useState<ResultSummary | null>(null);
+
+  const overviewStats = useMemo(
+    () => [
+      {
+        label: 'Engine',
+        value: 'Ready',
+        icon: ShieldCheck,
+        tone: 'text-emerald-300'
+      },
+      {
+        label: 'Saved',
+        value: resultSummary
+          ? `${Math.round(resultSummary.timeSavedSeconds)}s`
+          : 'Upload first',
+        icon: Zap,
+        tone: 'text-cyan-200'
+      },
+      {
+        label: 'Compression',
+        value: resultSummary
+          ? `${resultSummary.compressionRatio}x`
+          : 'Pending',
+        icon: Activity,
+        tone: 'text-amber-200'
+      }
+    ],
+    [resultSummary]
+  );
+
   return (
     <main className="min-h-screen bg-[#06070b] text-slate-100">
       <div className="fixed inset-0 -z-10 bg-[linear-gradient(135deg,rgba(12,19,33,0.96),rgba(6,7,11,1)_42%,rgba(17,24,39,0.98))]" />
@@ -109,7 +135,7 @@ export default function App() {
           <div>
             <p className="text-sm uppercase text-cyan-200">Realtime incident compression</p>
             <h2 className="mt-3 max-w-4xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
-              Turn hours of static camera footage into a focused security recap.
+              Upload CCTV footage. Get a shorter, timestamped recap.
             </h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
@@ -125,22 +151,22 @@ export default function App() {
 
         <div id="upload" className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
           <Suspense fallback={<LoadingPanel />}>
-            <UploadPanel />
+            <UploadPanel onResult={setResultSummary} />
           </Suspense>
 
           <div id="signals" className="grid gap-6">
             <Suspense fallback={<LoadingPanel />}>
-              <AnalyticsPanel />
+              <AnalyticsPanel summary={resultSummary} />
             </Suspense>
             <Suspense fallback={<LoadingPanel />}>
-              <TimelinePanel />
+              <TimelinePanel summary={resultSummary} />
             </Suspense>
           </div>
         </div>
 
         <div id="events">
           <Suspense fallback={<LoadingPanel />}>
-            <HeatmapPanel />
+            <HeatmapPanel summary={resultSummary} />
           </Suspense>
         </div>
       </div>

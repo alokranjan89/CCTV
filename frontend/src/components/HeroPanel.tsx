@@ -124,18 +124,18 @@ export default function HeroPanel() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs uppercase text-slate-500">Mission brief</p>
-            <h3 className="mt-2 text-2xl font-semibold text-white">Today’s surveillance stack</h3>
+            <p className="text-xs uppercase text-slate-500">Project workflow</p>
+            <h3 className="mt-2 text-2xl font-semibold text-white">What the app does</h3>
           </div>
           <RadioTower className="h-6 w-6 text-cyan-200" />
         </div>
 
         <div className="mt-6 space-y-3">
           {[
-            ['Static camera optimized', ShieldCheck, 'Ready'],
-            ['Motion trail extraction', MapPin, 'Enabled'],
-            ['Timestamp overlay', Timer, 'Synced'],
-            ['Suspicious event review', AlertTriangle, 'Queued']
+            ['Works best with fixed cameras', ShieldCheck, 'Ready'],
+            ['Tracks moving object regions', MapPin, 'Engine'],
+            ['Adds recap timestamps', Timer, 'Output'],
+            ['Shortens manual review time', AlertTriangle, 'Goal']
           ].map(([label, Icon, value]) => {
             const TypedIcon = Icon as typeof ShieldCheck;
             return (
@@ -152,7 +152,7 @@ export default function HeroPanel() {
 
         <div className="mt-6 rounded-2xl border border-cyan-300/15 bg-cyan-300/8 p-5">
           <p className="text-sm leading-6 text-slate-300">
-            Best for fixed CCTV angles: entrances, corridors, parking lanes, storefronts, warehouses, and checkpoints.
+            Use a stable camera angle for the cleanest background subtraction and recap output.
           </p>
         </div>
       </motion.aside>

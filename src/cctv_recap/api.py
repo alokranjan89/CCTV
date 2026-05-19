@@ -1,9 +1,11 @@
 import shutil
+import time
 import uuid
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict
 
+import cv2
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -46,7 +48,41 @@ async def health_check():
     return {'status': 'ok', 'message': 'CCTV Recap backend is running.'}
 
 
+def _video_metadata(path: Path) -> Dict:
+    cap = cv2.VideoCapture(str(path))
+    if not cap.isOpened():
+        return {
+            'durationSeconds': 0,
+            'fps': 0,
+            'frameCount': 0,
+            'width': 0,
+            'height': 0,
+        }
+
+    fps = cap.get(cv2.CAP_PROP_FPS) or 0
+    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) or 0)
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) or 0)
+    cap.release()
+
+    duration = frame_count / fps if fps else 0
+    return {
+        'durationSeconds': round(duration, 2),
+        'fps': round(fps, 2),
+        'frameCount': frame_count,
+        'width': width,
+        'height': height,
+    }
+
+
+def _format_bytes(path: Path) -> int:
+    return path.stat().st_size if path.exists() else 0
+
+
 def _process_video_job(job_id: str, input_path: str, output_path: str, interval: int, min_duration: int):
+    started_at = time.perf_counter()
+    input_file = Path(input_path)
+    output_file = Path(output_path)
     JOBS[job_id]['status'] = 'processing'
     JOBS[job_id]['progress'] = 10
     JOBS[job_id]['message'] = 'Analyzing uploaded footage...'
@@ -64,6 +100,30 @@ def _process_video_job(job_id: str, input_path: str, output_path: str, interval:
         JOBS[job_id]['status'] = 'writing'
         JOBS[job_id]['message'] = 'Generating video recap...'
         JOBS[job_id]['videoUrl'] = f'/results/{Path(result_path).name}'
+
+        input_meta = _video_metadata(input_file)
+        output_meta = _video_metadata(output_file)
+        input_duration = input_meta.get('durationSeconds') or 0
+        output_duration = output_meta.get('durationSeconds') or 0
+        time_saved = max(0, input_duration - output_duration)
+
+        JOBS[job_id]['summary'] = {
+            'input': {
+                **input_meta,
+                'sizeBytes': _format_bytes(input_file),
+            },
+            'output': {
+                **output_meta,
+                'sizeBytes': _format_bytes(output_file),
+            },
+            'processingSeconds': round(time.perf_counter() - started_at, 2),
+            'timeSavedSeconds': round(time_saved, 2),
+            'compressionRatio': round(input_duration / output_duration, 2) if output_duration else 0,
+            'settings': {
+                'interval': interval,
+                'minDuration': min_duration,
+            },
+        }
         JOBS[job_id]['progress'] = 100
         JOBS[job_id]['status'] = 'completed'
         JOBS[job_id]['message'] = 'Recap ready from uploaded footage.'
@@ -102,6 +162,7 @@ async def upload_video(
         'progress': 1,
         'filename': file.filename,
         'videoUrl': None,
+        'summary': None,
         'message': 'Queued for processing',
     }
 
