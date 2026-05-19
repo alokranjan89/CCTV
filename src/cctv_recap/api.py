@@ -9,10 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from cctv_recap import summarize_video
+from cctv_recap.engine import summarize_video
 
 
-ROOT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = Path(__file__).resolve().parents[2]
 UPLOAD_DIR = ROOT_DIR / 'uploads'
 RESULTS_DIR = ROOT_DIR / 'results'
 UPLOAD_DIR.mkdir(exist_ok=True)

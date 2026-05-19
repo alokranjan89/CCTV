@@ -1,6 +1,19 @@
-![Cover Image](/images/cover.png)
+# CCTV Recap
+
+![Cover Image](docs/assets/cover.png)
 
 >  Summarize hours of footage shot by static CCTV cameras into a short clip that shows all events as if they're occurring concurrently with timestamps as shown in the demo.
+
+## Repository Layout
+
+```text
+src/cctv_recap/       Python recap engine, FastAPI API, and Gradio UI
+frontend/             React + Vite dashboard
+docs/assets/          Documentation images and demo GIFs
+notebooks/            Research notebooks
+samples/              Demo and codec sample videos
+uploads/, results/    Runtime folders ignored by Git
+```
 
 ## Problem
 
@@ -10,7 +23,7 @@ In the modern times of security, Surveillance cameras are making their way into 
 
 CCTV-Recap can summarize hours of footage shot by static CCTV cameras into a <u>short clip</u> that shows all interesting events simultaneously. The program identifies and tracks all moving objects present in the video and overlays these events on a single clip, while also showing the timestamps for each event, thus letting the user perform surveillance for multiple events.
 
-<div align="center"><img src="/images/cctvRecap.png"/></div>  
+<div align="center"><img src="docs/assets/cctvRecap.png"/></div>  
 
 ### Working
 
@@ -27,7 +40,7 @@ CCTV-Recap can summarize hours of footage shot by static CCTV cameras into a <u>
 * ##### Cropping and overlaying moving objects: 
   A few filters are applied on the moving objects to refine the output. These objects are now cropped out of the original video and overlaid on the background simultaneously (irrespective of their starting time in the original video) to give an appearance of all these events happening at the same time. Each event's time of occurrence is displayed on top of its moving object. The events are given a slight transparent appearance to deal with overlaps between multiple objects.
 
-![Background Mask](/images/mask.jpeg)
+![Background Mask](docs/assets/mask.jpeg)
 
 ## Challenges Faced
 
@@ -52,8 +65,10 @@ This repository now includes a full-stack CCTV Recap platform with:
 * Run the backend API
 
   ```bash
-  python -m uvicorn backend:app --reload --host 127.0.0.1 --port 8000
+  python -m uvicorn cctv_recap.api:app --reload --host 127.0.0.1 --port 8000
   ```
+
+  If you are running directly from the source tree without installing the package, set `PYTHONPATH=src` first.
 
 ### Frontend
 
@@ -73,7 +88,7 @@ This repository now includes a full-stack CCTV Recap platform with:
 * Open the dashboard in your browser:
 
   ```text
-  http://localhost:4174/
+  http://localhost:4173/
   ```
 
 ### Direct command-line use
@@ -81,9 +96,15 @@ This repository now includes a full-stack CCTV Recap platform with:
 If you want to run the video summarization engine directly from Python:
 
 ```bash
-python cctv_recap.py <path to video> --interval 10 --min-duration 4
+python -m cctv_recap <path to video> --interval 10 --min-duration 4
+```
+
+After editable install, the same command is available as:
+
+```bash
+cctv-recap <path to video> --interval 10 --min-duration 4
 ```
 
 ## Results
 
-![Results](/images/demo.gif)
+![Results](docs/assets/demo.gif)

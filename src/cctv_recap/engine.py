@@ -260,7 +260,7 @@ def parse_args():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
     output_path = summarize_video(
         args.VID_PATH,
@@ -270,3 +270,7 @@ if __name__ == "__main__":
         min_seconds=args.min_duration,
     )
     print(f"Summary video is available at {output_path}")
+
+
+if __name__ == "__main__":
+    main()

@@ -7,7 +7,8 @@ A premium AI surveillance frontend built with React, Tailwind CSS, Framer Motion
 1. Start the Python backend in the project root:
    ```bash
    pip install -r requirements.txt
-   python -m uvicorn backend:app --reload --host 127.0.0.1 --port 8000
+   $env:PYTHONPATH="src"
+   python -m uvicorn cctv_recap.api:app --reload --host 127.0.0.1 --port 8000
    ```
 2. Open a new terminal in `frontend`
 3. Install dependencies:
@@ -22,9 +23,9 @@ A premium AI surveillance frontend built with React, Tailwind CSS, Framer Motion
 Then open the local dashboard in your browser, for example:
 
 ```text
-http://localhost:4174/
+http://localhost:4173/
 ```
 
 ## API wiring
 
-The frontend forwards `/api` and `/results` to the Python backend, so uploaded video files are processed by the `backend.py` service and the generated recap is returned as a playable clip in the UI.
+The frontend forwards `/api` and `/results` to the Python backend, so uploaded video files are processed by the `cctv_recap.api` service and the generated recap is returned as a playable clip in the UI.

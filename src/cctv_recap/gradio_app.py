@@ -3,7 +3,7 @@ import tempfile
 import time
 import gradio as gr
 
-from cctv_recap import summarize_video
+from cctv_recap.engine import summarize_video
 
 CUSTOM_CSS = """
 body {

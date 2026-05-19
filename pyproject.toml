@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cctv-recap"
+version = "1.1.0"
+description = "Summarize static CCTV footage into short recap clips with a Python backend and React dashboard."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "progressbar2==3.47.0",
+    "opencv-python>=4.1.0",
+    "numpy>=1.16.0",
+    "gradio>=3.0.0",
+    "fastapi>=0.110.0",
+    "uvicorn>=0.23.0",
+    "python-multipart>=0.0.6",
+    "aiofiles>=23.1.0",
+]
+
+[project.scripts]
+cctv-recap = "cctv_recap.engine:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
